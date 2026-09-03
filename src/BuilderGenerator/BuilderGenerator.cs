@@ -16,6 +16,7 @@ namespace BuilderGenerator;
 [Generator]
 internal class BuilderGenerator : IIncrementalGenerator
 {
+    private static readonly string Header;
     private static readonly string BuilderClass;
     private static readonly string BuilderProperty;
     private static readonly string BuildMethod;
@@ -33,6 +34,7 @@ internal class BuilderGenerator : IIncrementalGenerator
     {
         var assembly = typeof(BuilderGenerator).Assembly;
 
+        Header = GetResourceAsString(assembly, $"{nameof(Header)}.cs");
         BuilderClass = GetResourceAsString(assembly, $"{nameof(BuilderClass)}.cs");
         BuilderProperty = GetResourceAsString(assembly, $"{nameof(BuilderProperty)}.cs");
         BuildMethodSetter = GetResourceAsString(assembly, $"{nameof(BuildMethodSetter)}.cs");
@@ -84,6 +86,8 @@ internal class BuilderGenerator : IIncrementalGenerator
             templateParser.SetTag("GenerationTime", $" at {DateTime.Now:s}");
             templateParser.SetTag("GenerationDuration", $" in {(builder.Value.TimeToGenerate + stopwatch.Elapsed).TotalMilliseconds}ms");
 #endif
+            templateParser.SetTag("Version", $" Version: {Assembly.GetExecutingAssembly().GetName().Version}");
+            templateParser.SetTag(nameof(Header), templateParser.ParseString(Header));
             templateParser.SetTag("BuilderClassUsingBlock", builder.Value.BuilderClassUsingBlock);
             templateParser.SetTag("BuilderClassNamespace", builder.Value.BuilderClassNamespace);
             templateParser.SetTag("BuilderClassAccessibility", builder.Value.BuilderClassAccessibility.ToString().ToLower());
