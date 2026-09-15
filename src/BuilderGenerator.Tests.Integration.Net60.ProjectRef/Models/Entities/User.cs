@@ -6,6 +6,8 @@ namespace BuilderGenerator.Tests.Integration.Net60.ProjectRef.Models.Entities;
 /// <summary>Represents an individual user of the system.</summary>
 public class User : AuditableEntity
 {
+    private readonly string? nickName;
+
     /// <summary>Uniquely identifies a <see cref="User"/>.</summary>
     public override Guid Id { get; set; }
 
@@ -20,4 +22,12 @@ public class User : AuditableEntity
 
     /// <summary>The <see cref="User" />'s <see cref="Order" />s.</summary>
     public ICollection<Order> Orders { get; set; } = new List<Order>();
+
+    public User(Guid id, string? nickName)
+    {
+        this.nickName = nickName;
+        Id = id;
+    }
+
+    public string? GetNickName() => nickName;
 }

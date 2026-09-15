@@ -75,4 +75,8 @@
     <None Remove="Verify\When_generating_a_Builder_including_internals.Test.verified.txt" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Verify\" />
+  </ItemGroup>
+
 </Project>

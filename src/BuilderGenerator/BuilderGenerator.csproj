@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Description>Generates builder classes for testing and/or seed data. Please see documentation site (https://melgrubb.github.io/BuilderGenerator/) for complete details.</Description>
+    <Description>Generates builder classes for testing and/or seed data.</Description>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <IsRoslynComponent>true</IsRoslynComponent>
     <LangVersion>latest</LangVersion>
@@ -12,22 +12,19 @@
   <PropertyGroup>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <PackageId>BuilderGenerator</PackageId>
+    <PackageId>BuilderGenerator.ParameterizedConstructor</PackageId>
     <PackageIcon>logo.png</PackageIcon>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <PackageProjectUrl>https://github.com/MelGrubb/BuilderGenerator</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/GaffaRay/BuilderGenerator</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>BDD;TDD;Testing;Builders;Code Generation;Source Generators</PackageTags>
     <PackageReleaseNotes>
-      v3.1.0
-      - Object backing property (e.g. PersonBuilder.Person) is now public (#60).
-      - PostBuildAction property is now public.
-      - Solved duplicate property problem (#61)
-      - Switched tests to xUnit
+      v1.0.0
+      - Classes with parameterized constructors can be used by the Builders.
     </PackageReleaseNotes>
-    <PackageVersion>$(Version)</PackageVersion>
+    <PackageVersion>1.0.0</PackageVersion>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/MelGrubb/BuilderGenerator</RepositoryUrl>
+    <RepositoryUrl>https://github.com/GaffaRay/BuilderGenerator</RepositoryUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

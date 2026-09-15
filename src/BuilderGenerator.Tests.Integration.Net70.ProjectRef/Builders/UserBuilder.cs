@@ -13,7 +13,8 @@ public sealed partial class UserBuilder
             .WithId(Guid.NewGuid)
             .WithFirstName(() => Guid.NewGuid().ToString())
             .WithMiddleName(() => Guid.NewGuid().ToString())
-            .WithLastName(() => Guid.NewGuid().ToString());
+            .WithLastName(() => Guid.NewGuid().ToString())
+            .WithoutOrders();
 
         return builder;
     }

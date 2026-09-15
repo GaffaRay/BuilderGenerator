@@ -20,7 +20,7 @@ Thank you to the following developers for their contributions to the project.
 Like all .Net [Source Generators](https://devblogs.microsoft.com/dotnet/introducing-c-source-generators/), BuilderGenerator is installed as an analyzer via [NuGet](https://www.nuget.org/packages/BuilderGenerator/). You can find it through the "Manage NuGet Packages" dialog in Visual Studio, or simply install it from the command line.
 
 ```ps
-Install-Package BuilderGenerator
+Install-Package BuilderGenerator.ParameterizedConstructor
 ```
 
 ## What are Builders?

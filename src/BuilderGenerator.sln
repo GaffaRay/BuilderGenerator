@@ -35,7 +35,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "devops", "devops", "{6842FF17-D296-4C8D-BDA2-90624C2E475C}"
 	ProjectSection(SolutionItems) = preProject
 		..\.github\workflows\ci.yml = ..\.github\workflows\ci.yml
-		..\.github\workflows\release.yml = ..\.github\workflows\release.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuilderGenerator.Tests.Integration.Net80.ProjectRef", "BuilderGenerator.Tests.Integration.Net80.ProjectRef\BuilderGenerator.Tests.Integration.Net80.ProjectRef.csproj", "{42D12F84-04D1-4330-BD5D-411E60832EC3}"

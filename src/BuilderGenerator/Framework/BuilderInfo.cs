@@ -75,5 +75,7 @@ internal record struct BuilderInfo
         /// <summary>Gets or sets the type name of the target class property.</summary>
         /// <value>The <see cref="string"/> type name of the target class property.</value>
         public string Type { get; set; }
+
+        public bool IsConstructorParameter { get; set; }
     }
 }

@@ -27,6 +27,12 @@ namespace BuilderGenerator.Tests.Unit.Examples
         // </remarks>
         public System.Action<BuilderGenerator.Tests.Unit.Examples.Person> PostBuildAction { get; set; }
 
+        /// <summary>Uniquely identifies a <see cref="T:BuilderGenerator.Tests.Unit.Examples.Person"/> instance.</summary>
+        public System.Lazy<System.Guid> Id = new System.Lazy<System.Guid>(() => default(System.Guid));
+
+
+        public System.Lazy<string> Haircolour = new System.Lazy<string>(() => default(string));
+
         /// <summary>When this instance was created.</summary>
         public System.Lazy<System.DateTime> CreatedAt = new System.Lazy<System.DateTime>(() => default(System.DateTime));
 
@@ -38,9 +44,6 @@ namespace BuilderGenerator.Tests.Unit.Examples
         /// </summary>
         /// <remarks>This was a multi-line, indented summary in the original source code.</remarks>
         public System.Lazy<string> FirstName = new System.Lazy<string>(() => default(string));
-
-        /// <summary>Uniquely identifies a <see cref="T:BuilderGenerator.Tests.Unit.Examples.Person"/> instance.</summary>
-        public System.Lazy<System.Guid> Id = new System.Lazy<System.Guid>(() => default(System.Guid));
 
         /// <summary>A string with internal accessibility to test the "includeInternals" attribute parameter.</summary>
         /// <remarks>This was a single-line summary in the original source code.</remarks>
@@ -77,12 +80,11 @@ namespace BuilderGenerator.Tests.Unit.Examples
             {
                 Person = new System.Lazy<BuilderGenerator.Tests.Unit.Examples.Person>(() =>
                 {
-                    var result = new BuilderGenerator.Tests.Unit.Examples.Person
+                    var result = new BuilderGenerator.Tests.Unit.Examples.Person(Id.Value, Haircolour.Value)
                     {
                         CreatedAt = CreatedAt.Value,
                         CreatedBy = CreatedBy.Value,
                         FirstName = FirstName.Value,
-                        Id = Id.Value,
                         InternalString = InternalString.Value,
                         LastName = LastName.Value,
                         MiddleName = MiddleName.Value,
@@ -108,7 +110,6 @@ namespace BuilderGenerator.Tests.Unit.Examples
         public PersonBuilder WithPerson(BuilderGenerator.Tests.Unit.Examples.Person value)
         {
             Person = new System.Lazy<BuilderGenerator.Tests.Unit.Examples.Person>(() => value);
-            WithValuesFrom(value);
 
             return this;
         }
@@ -119,20 +120,44 @@ namespace BuilderGenerator.Tests.Unit.Examples
             return this;
         }
 
-        /// <summary>Populates this instance with values from the provided example.</summary>
-        /// <remarks>This is a shallow clone, and does not traverse the example object creating builders for its properties.</remarks>
-        public PersonBuilder WithValuesFrom(BuilderGenerator.Tests.Unit.Examples.Person example)
-        {
-            WithCreatedAt(example.CreatedAt);
-            WithCreatedBy(example.CreatedBy);
-            WithFirstName(example.FirstName);
-            WithId(example.Id);
-            WithInternalString(example.InternalString);
-            WithLastName(example.LastName);
-            WithMiddleName(example.MiddleName);
-            WithUpdatedAt(example.UpdatedAt);
-            WithUpdatedBy(example.UpdatedBy);
 
+        /// <summary>Uniquely identifies a <see cref="T:BuilderGenerator.Tests.Unit.Examples.Person"/> instance.</summary>
+        public PersonBuilder WithId(System.Guid value)
+        {
+            return WithId(() => value);
+        }
+
+        /// <summary>Uniquely identifies a <see cref="T:BuilderGenerator.Tests.Unit.Examples.Person"/> instance.</summary>
+        public PersonBuilder WithId(System.Func<System.Guid> func)
+        {
+            Id = new System.Lazy<System.Guid>(func);
+            return this;
+        }
+
+        /// <summary>Uniquely identifies a <see cref="T:BuilderGenerator.Tests.Unit.Examples.Person"/> instance.</summary>
+        public PersonBuilder WithoutId()
+        {
+            Id = new System.Lazy<System.Guid>(() => default(System.Guid));
+            return this;
+        }
+
+
+        public PersonBuilder WithHaircolour(string value)
+        {
+            return WithHaircolour(() => value);
+        }
+
+
+        public PersonBuilder WithHaircolour(System.Func<string> func)
+        {
+            Haircolour = new System.Lazy<string>(func);
+            return this;
+        }
+
+
+        public PersonBuilder WithoutHaircolour()
+        {
+            Haircolour = new System.Lazy<string>(() => default(string));
             return this;
         }
 
@@ -202,26 +227,6 @@ namespace BuilderGenerator.Tests.Unit.Examples
         public PersonBuilder WithoutFirstName()
         {
             FirstName = new System.Lazy<string>(() => default(string));
-            return this;
-        }
-
-        /// <summary>Uniquely identifies a <see cref="T:BuilderGenerator.Tests.Unit.Examples.Person"/> instance.</summary>
-        public PersonBuilder WithId(System.Guid value)
-        {
-            return WithId(() => value);
-        }
-
-        /// <summary>Uniquely identifies a <see cref="T:BuilderGenerator.Tests.Unit.Examples.Person"/> instance.</summary>
-        public PersonBuilder WithId(System.Func<System.Guid> func)
-        {
-            Id = new System.Lazy<System.Guid>(func);
-            return this;
-        }
-
-        /// <summary>Uniquely identifies a <see cref="T:BuilderGenerator.Tests.Unit.Examples.Person"/> instance.</summary>
-        public PersonBuilder WithoutId()
-        {
-            Id = new System.Lazy<System.Guid>(() => default(System.Guid));
             return this;
         }
 

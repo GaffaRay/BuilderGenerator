@@ -40,7 +40,6 @@ namespace {{BuilderClassNamespace}}
             return this;
         }
 
-{{WithValuesFromMethod}}
 {{WithMethods}}
     }
 }
