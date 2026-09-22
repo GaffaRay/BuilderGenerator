@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using BuilderGenerator.Diagnostics;
+using BuilderGenerator.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -16,6 +17,7 @@ namespace BuilderGenerator;
 [Generator]
 internal class BuilderGenerator : IIncrementalGenerator
 {
+    private static readonly string Header;
     private static readonly string BuilderClass;
     private static readonly string BuilderProperty;
     private static readonly string BuildMethod;
@@ -26,13 +28,12 @@ internal class BuilderGenerator : IIncrementalGenerator
     private static readonly string WithMethods;
     private static readonly string WithObjectMethod;
     private static readonly string WithObjectMethodSetter;
-    private static readonly string WithValuesFromMethod;
-    private static readonly string WithValuesFromSetter;
 
     static BuilderGenerator()
     {
         var assembly = typeof(BuilderGenerator).Assembly;
 
+        Header = GetResourceAsString(assembly, $"{nameof(Header)}.cs");
         BuilderClass = GetResourceAsString(assembly, $"{nameof(BuilderClass)}.cs");
         BuilderProperty = GetResourceAsString(assembly, $"{nameof(BuilderProperty)}.cs");
         BuildMethodSetter = GetResourceAsString(assembly, $"{nameof(BuildMethodSetter)}.cs");
@@ -40,8 +41,6 @@ internal class BuilderGenerator : IIncrementalGenerator
         WithMethods = GetResourceAsString(assembly, $"{nameof(WithMethods)}.cs");
         WithObjectMethod = GetResourceAsString(assembly, $"{nameof(WithObjectMethod)}.cs");
         WithObjectMethodSetter = GetResourceAsString(assembly, $"{nameof(WithObjectMethodSetter)}.cs");
-        WithValuesFromMethod = GetResourceAsString(assembly, $"{nameof(WithValuesFromMethod)}.cs");
-        WithValuesFromSetter = GetResourceAsString(assembly, $"{nameof(WithValuesFromSetter)}.cs");
     }
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -84,6 +83,8 @@ internal class BuilderGenerator : IIncrementalGenerator
             templateParser.SetTag("GenerationTime", $" at {DateTime.Now:s}");
             templateParser.SetTag("GenerationDuration", $" in {(builder.Value.TimeToGenerate + stopwatch.Elapsed).TotalMilliseconds}ms");
 #endif
+            templateParser.SetTag("Version", $" Version: {Assembly.GetExecutingAssembly().GetName().Version}");
+            templateParser.SetTag(nameof(Header), templateParser.ParseString(Header));
             templateParser.SetTag("BuilderClassUsingBlock", builder.Value.BuilderClassUsingBlock);
             templateParser.SetTag("BuilderClassNamespace", builder.Value.BuilderClassNamespace);
             templateParser.SetTag("BuilderClassAccessibility", builder.Value.BuilderClassAccessibility.ToString().ToLower());
@@ -91,7 +92,6 @@ internal class BuilderGenerator : IIncrementalGenerator
             templateParser.SetTag("TargetClassName", builder.Value.TargetClassName);
             templateParser.SetTag("TargetClassFullName", builder.Value.TargetClassFullName);
             templateParser.SetTag("Properties", GenerateProperties(templateParser, builder.Value.Properties));
-            templateParser.SetTag("WithValuesFromMethod", GenerateWithValuesFromMethod(templateParser, builder.Value.Properties));
             templateParser.SetTag(nameof(BuildMethod), GenerateBuildMethod(templateParser, builder.Value.Properties));
             templateParser.SetTag(nameof(WithMethods), GenerateWithMethods(templateParser, builder.Value.Properties));
             templateParser.SetTag(nameof(WithObjectMethod), GenerateWithObjectMethod(templateParser));
@@ -107,23 +107,42 @@ internal class BuilderGenerator : IIncrementalGenerator
 
     private static string GenerateBuildMethod(TemplateParser templateParser, IEnumerable<BuilderInfo.PropertyInfo> properties)
     {
+        var propertiesList = properties.ToList();
+        var constructorParameters = propertiesList.Where(p => p.IsConstructorParameter).ToList();
+        var initializerProperties = propertiesList.Where(p => !p.IsConstructorParameter).ToList();
+
+        // Generate constructor parameters - only include parentheses if there are parameters
+        var constructorParamsString = constructorParameters.Any()
+            ? $"({string.Join(", ", constructorParameters.Select(p => $"{p.Name.Capitalize()}.Value"))})"
+            : "";
+
         var setters = string.Join(
             NewLine,
-            properties.Select(
+            initializerProperties.Select(
                 p =>
                 {
+                    var name = p.Name.Capitalize();
+
                     // Extract XML documentation comment for the property
                     var propertyComment = string.IsNullOrWhiteSpace(p.Comment)
-                        ? $"{NewLine}<summary>With {p.Name}.</summary>" // Default if no comment is provided
+                        ? $"{NewLine}<summary>With {name}.</summary>" // Default if no comment is provided
                         : p.Comment;
 
                     templateParser.SetTag("PropertyComment", FormatXmlComments(propertyComment));
-                    templateParser.SetTag("PropertyName", p.Name);
+                    templateParser.SetTag("PropertyName", name);
 
                     return templateParser.ParseString(BuildMethodSetter);
                 }));
 
-        templateParser.SetTag("Setters", setters);
+        var objectInitializer = initializerProperties.Any()
+            ? $@"
+                    {{
+{setters}
+                    }}"
+            : "";
+
+        templateParser.SetTag("Parameters", constructorParamsString);
+        templateParser.SetTag("Initializer", objectInitializer);
         var result = templateParser.ParseString(BuildMethod);
 
         return result;
@@ -142,7 +161,7 @@ internal class BuilderGenerator : IIncrementalGenerator
                         : p.Comment;
 
                     templateParser.SetTag("PropertyComment", FormatXmlComments(propertyComment));
-                    templateParser.SetTag("PropertyName", p.Name);
+                    templateParser.SetTag("PropertyName", p.Name.Capitalize());
                     templateParser.SetTag("PropertyType", p.Type);
 
                     return templateParser.ParseString(BuilderProperty);
@@ -158,13 +177,15 @@ internal class BuilderGenerator : IIncrementalGenerator
             properties.Select(
                 p =>
                 {
+                    var name = p.Name.Capitalize();
+
                     // Extract XML documentation comment for the property
                     var propertyComment = string.IsNullOrWhiteSpace(p.Comment)
-                        ? $"<summary>With {p.Name}.</summary>" // Default if no comment is provided
+                        ? $"<summary>With {name}.</summary>" // Default if no comment is provided
                         : p.Comment;
 
                     templateParser.SetTag("PropertyComment", FormatXmlComments(propertyComment));
-                    templateParser.SetTag("PropertyName", p.Name);
+                    templateParser.SetTag("PropertyName", name);
                     templateParser.SetTag("PropertyType", p.Type);
 
                     return templateParser.ParseString(WithMethods);
@@ -178,39 +199,64 @@ internal class BuilderGenerator : IIncrementalGenerator
         return templateParser.ParseString(WithObjectMethod);
     }
 
-    private static string GenerateWithValuesFromMethod(TemplateParser templateParser, IEnumerable<BuilderInfo.PropertyInfo> properties)
+    private static IEnumerable<IParameterSymbol> GetParameterSymbols(INamedTypeSymbol namedTypeSymbol)
     {
-        var setters = string.Join(
-            NewLine,
-            properties.Select(
-                p =>
-                {
-                    templateParser.SetTag("PropertyName", p.Name);
+        var constructors = namedTypeSymbol.InstanceConstructors;
 
-                    return templateParser.ParseString(WithValuesFromSetter);
-                }));
+        if (!constructors.Any())
+        {
+            return [];
+        }
 
-        templateParser.SetTag("WithValuesFromSetters", setters);
-        var result = templateParser.ParseString(WithValuesFromMethod);
+        var primaryConstructor = constructors
+            .Where(c => c.DeclaredAccessibility == Accessibility.Public)
+            .OrderByDescending(c => c.Parameters.Length)
+            .FirstOrDefault();
 
-        return result;
+        if (primaryConstructor == null)
+        {
+            primaryConstructor = constructors
+                .OrderByDescending(c => c.Parameters.Length)
+                .FirstOrDefault();
+        }
+
+        if (primaryConstructor == null)
+        {
+            return [];
+        }
+
+        return primaryConstructor.Parameters;
     }
 
-    private static IEnumerable<IPropertySymbol> GetPropertySymbols(INamedTypeSymbol namedTypeSymbol, bool includeInternals, bool includeObsolete)
+    private static IEnumerable<IPropertySymbol> GetPropertySymbols(INamedTypeSymbol namedTypeSymbol, bool includeInternals, bool includeObsolete, HashSet<string>? constructorParameterPropertyNames = null)
     {
         var baseTypeSymbol = namedTypeSymbol.BaseType;
 
         var symbols = namedTypeSymbol.GetMembers()
             .OfType<IPropertySymbol>()
             .Where(
-                x => x.SetMethod is not null
-                    && (includeObsolete || !x.GetAttributes().Any(a => a.AttributeClass?.Name is "Obsolete" or "ObsoleteAttribute"))
-                    && (x.SetMethod.DeclaredAccessibility == Accessibility.Public || (includeInternals && x.SetMethod.DeclaredAccessibility == Accessibility.Internal)))
+                x =>
+                {
+                    // Skip obsolete properties unless explicitly included
+                    if (!includeObsolete && x.IsObsolete())
+                    {
+                        return false;
+                    }
+
+                    // Include properties with public/internal setters
+                    var hasAccessibleSetter = x.HasAccessibleSetter(includeInternals);
+
+                    // OR include properties that are constructor parameters (even if they have no setter or private setter)
+                    var isConstructorParameter = constructorParameterPropertyNames != null
+                        && constructorParameterPropertyNames.Contains(x.Name);
+
+                    return hasAccessibleSetter || isConstructorParameter;
+                })
             .ToList();
 
         while (baseTypeSymbol != null)
         {
-            var baseTypeProperties = GetPropertySymbols(baseTypeSymbol, includeInternals, includeObsolete)
+            var baseTypeProperties = GetPropertySymbols(baseTypeSymbol, includeInternals, includeObsolete, constructorParameterPropertyNames)
                 .Where(s => symbols.All(s2 => s2.Name != s.Name));
 
             symbols.AddRange(baseTypeProperties);
@@ -270,11 +316,37 @@ internal class BuilderGenerator : IIncrementalGenerator
         var includeInternals = arguments.Length > 1 && (bool)arguments[1].Value!;
         var includeObsolete = arguments.Length > 2 && (bool)arguments[2].Value!;
 
+        var targetClassSymbol = (INamedTypeSymbol)targetClassType.Value!;
+        var parameterSymbols = GetParameterSymbols(targetClassSymbol).ToList();
+        var targetClassParameters = parameterSymbols
+            .Select<IParameterSymbol, (string Name, string TypeName, Accessibility Accessibility, string? Comment)>(x => new ValueTuple<string, string, Accessibility, string?>(x.Name, x.Type.ToString(), x.DeclaredAccessibility, x.GetDocumentationCommentXml()))
+            .ToList();
         var targetClassProperties = GetPropertySymbols((INamedTypeSymbol)targetClassType.Value!, includeInternals, includeObsolete)
             .Select<IPropertySymbol, (string Name, string TypeName, Accessibility Accessibility, string? Comment)>(x => new ValueTuple<string, string, Accessibility, string?>(x.Name, x.Type.ToString(), x.DeclaredAccessibility, x.GetDocumentationCommentXml()))
             .Distinct()
             .OrderBy(x => x.Name)
             .ToList();
+
+        var propertyInfos = targetClassParameters.Select(x => new BuilderInfo.PropertyInfo
+        {
+            Accessibility = x.Accessibility,
+            Comment = string.IsNullOrEmpty(x.Comment) ? targetClassProperties.Where(property => property.Name.Equals(x.Name, StringComparison.OrdinalIgnoreCase)).Select(property => property.Comment).FirstOrDefault() : null,
+            Name = x.Name,
+            IsConstructorParameter = true,
+            Type = x.TypeName,
+        }).ToList();
+
+        propertyInfos.AddRange(
+            targetClassProperties
+                .Where(x => !propertyInfos.Any(p => p.Name.Equals(x.Name, StringComparison.OrdinalIgnoreCase)))
+                .Select(x => new BuilderInfo.PropertyInfo
+                {
+                    Accessibility = x.Accessibility,
+                    Comment = x.Comment,
+                    Name = x.Name,
+                    IsConstructorParameter = false,
+                    Type = x.TypeName,
+                }));
 
         var result = new BuilderInfo
         {
@@ -284,14 +356,7 @@ internal class BuilderGenerator : IIncrementalGenerator
             TargetClassName = ((ISymbol)targetClassType.Value!).Name,
             TargetClassFullName = targetClassType.Value!.ToString(),
             BuilderClassUsingBlock = ((CompilationUnitSyntax)typeNode.SyntaxTree.GetRoot()).Usings.ToString(),
-            Properties = targetClassProperties.Select(
-                x => new BuilderInfo.PropertyInfo
-                {
-                    Accessibility = x.Accessibility,
-                    Comment = x.Comment,
-                    Name = x.Name,
-                    Type = x.TypeName,
-                }).ToList(),
+            Properties = propertyInfos,
             Location = typeNode.GetLocation(),
             Identifier = typeNode.Identifier.ToString(),
             TimeToGenerate = stopwatch.Elapsed,

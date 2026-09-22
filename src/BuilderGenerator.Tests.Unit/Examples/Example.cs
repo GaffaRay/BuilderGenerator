@@ -54,4 +54,12 @@ public class Person : AuditableEntity
     /// <remarks>This was a single-line summary in the original source code.</remarks>
     [Obsolete]
     public string ObsoleteString { get; set; }
+
+    private string haircolour;
+
+    public Person(Guid id, string haircolour)
+    {
+        this.Id = id;
+        this.haircolour = haircolour;
+    }
 }

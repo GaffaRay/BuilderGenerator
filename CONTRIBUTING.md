@@ -12,3 +12,4 @@ There are currently five test projects.
 - BuilderGenerator.Tests.Integration.Net60: Uses the builder generator in a more real-world way to create builders for a sample Net 6 library project.
 - BuilderGenerator.Tests.Integration.Net70: Same thing, but targeting .Net 7
 - BuilderGenerator.Tests.Integration.Net80: Same thing, but targeting .Net 8
+- BuilderGenerator.Tests.Integration.Net90: Same thing, but targeting .Net 9

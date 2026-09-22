@@ -4,7 +4,6 @@
         public {{BuilderClassName}} With{{TargetClassName}}({{TargetClassFullName}} value)
         {
             {{TargetClassName}} = new System.Lazy<{{TargetClassFullName}}>(() => value);
-            WithValuesFrom(value);
 
             return this;
         }

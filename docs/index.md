@@ -1,26 +1,21 @@
-# BuilderGenerator
+# BuilderGenerator.ParameterizedConstructor
 
 This NuGet package automates the generation of object builders for testing. It generates the repetitive part of creating builders, leaving only the more interesting, hand-curated parts for you to implement as partial classes.
 
-With the v3.0 release, there are a few important breaking changes.
-
-Builders previously exposed an "Object" property and accompanying "WithObject" method to allow you to directly set the instance to be returned from the builder. This is not a common scenario. It's also uncommon for a class to have a property called "Object", but it _does_ occasionally happen. In version 3, the object property and its With method are now named for the Builder's target class. A `FooBuilder` class will now have a property called `Foo` and associated `WithFoo` methods. Otherwise, this functionality is unchanged.
-
-Builders previously had a virtual "PostProcess" method on the base class which could be overridden to perform additional operations the first time the builder's `Build` method is called. Unlike the other properties, there was previously no way to override the `PostProcess` method. Any difference in behavior from one factory method to another had to be written directly into the `PostProcess` method itself. In version 3, this single method has been replaced with a new `WithPostBuildAction` method that takes an Action and returns a reference to the Builder so that it chains just like any other "With" method. This allows a factory method like "Typical" to throw out and replace the post-build action established by a lower level like "Simple". To migrate existing `PostProcess` actions, just add a call to `WithPostBuildAction` that calls your existing `PostProcess` method, and remove its `override` keyword.
-
-Builders now ignore properties marked with the `Obsolete` attribute by default, although this can be overridden with the `includeObsolete` parameter to the `BuilderForAttribute` constructor if needed. This is similar to the existing `includeInternals` parameter.
+This fork of Mel Grubbs's BuilderGenerator enables to use the annotation with classes that use parameterized constructors.
 
 ## Contributors
 Thank you to the following developers for their contributions to the project.
 - Michiel van Oosterhout for the Object -> ClassName suggestion.
 - lucavoit for his PR to copy XML comment header contents to the builder With methods.
+- Mel Grubb for the original BuilderGenerator-project
 
 ## Installation
 
 Like all .Net [Source Generators](https://devblogs.microsoft.com/dotnet/introducing-c-source-generators/), BuilderGenerator is installed as an analyzer via [NuGet](https://www.nuget.org/packages/BuilderGenerator/). You can find it through the "Manage NuGet Packages" dialog in Visual Studio, or simply install it from the command line.
 
 ```ps
-Install-Package BuilderGenerator
+Install-Package BuilderGenerator.ParameterizedConstructor
 ```
 
 ## What are Builders?
@@ -29,7 +24,7 @@ Builders provide a way to describe desired objects using a fluent syntax. They a
 
 The majority of the time, test object builders will provide a set of well-known or "canned" objects through the use of static factory methods. For instance, a UserBuilder class may define an "Admin" method that returns a builder for an administrator account to be used as part of a test. Similarly, it may expose a "Customer" method that returns a builder for *that* specific kind of user.
 
-The fluent syntax provided by the builder lets you take the result from one of these methods and further modify it before calling the "Build" method to create the final result. For a deeper explanation of the principles at work, please see my [Pluralsight course](https://app.pluralsight.com/library/courses/automated-testing-creating-maintainable-contexts/table-of-contents), but I'll try to summarize here as best I can.
+The fluent syntax provided by the builder lets you take the result from one of these methods and further modify it before calling the "Build" method to create the final result. For a deeper explanation of the principles at work, please see Mel Grubb's [Pluralsight course](https://app.pluralsight.com/library/courses/automated-testing-creating-maintainable-contexts/table-of-contents), but I'll try to summarize here as best I can.
 
 The combination of the factory methods and fluent interface make it possible to write simple, expressive tests that clearly communicate their meaning by only mentioning the things that are important to the test. Consider the following typical test context setup. It creates a User object to be used by unit tests later on.
 

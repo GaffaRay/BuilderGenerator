@@ -13,6 +13,7 @@ public class UserBuilderTests
     private Guid _id;
     private string _lastName = null!;
     private string _middleName = null!;
+    private string _nickName = null!;
     private User _result = null!;
 
     [Test]
@@ -50,6 +51,17 @@ public class UserBuilderTests
         _result.FirstName.ShouldBe(_firstName);
         _result.MiddleName.ShouldBe(_middleName);
         _result.LastName.ShouldBe(_lastName);
+        _result.GetNickName().ShouldBe(_nickName);
+    }
+
+    [Test]
+    public void New_refreshes_target_object()
+    {
+        var builder = UserBuilder.Simple();
+        var firstResult = builder.Build();
+        var secondResult = builder.New().Build();
+
+        firstResult.ShouldNotBeSameAs(secondResult);
     }
 
     [OneTimeSetUp]
@@ -59,6 +71,7 @@ public class UserBuilderTests
         _firstName = Guid.NewGuid().ToString();
         _middleName = Guid.NewGuid().ToString();
         _lastName = Guid.NewGuid().ToString();
+        _nickName = Guid.NewGuid().ToString();
 
         _result = UserBuilder
             .Typical()
@@ -66,6 +79,7 @@ public class UserBuilderTests
             .WithFirstName(_firstName)
             .WithMiddleName(_middleName)
             .WithLastName(_lastName)
+            .WithNickName(_nickName)
             .Build();
     }
 }

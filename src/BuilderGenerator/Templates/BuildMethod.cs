@@ -4,10 +4,7 @@
             {
                 {{TargetClassName}} = new System.Lazy<{{TargetClassFullName}}>(() =>
                 {
-                    var result = new {{TargetClassFullName}}
-                    {
-{{Setters}}
-                    };
+                    var result = new {{TargetClassFullName}}{{Parameters}}{{Initializer}};
 
                     return result;
                 });
