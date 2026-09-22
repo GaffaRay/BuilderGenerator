@@ -54,6 +54,16 @@ public class UserBuilderTests
         _result.GetNickName().ShouldBe(_nickName);
     }
 
+    [Test]
+    public void New_refreshes_target_object()
+    {
+        var builder = UserBuilder.Simple();
+        var firstResult = builder.Build();
+        var secondResult = builder.New().Build();
+
+        firstResult.ShouldNotBeSameAs(secondResult);
+    }
+
     [OneTimeSetUp]
     public void SetUp()
     {

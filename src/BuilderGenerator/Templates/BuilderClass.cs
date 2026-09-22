@@ -32,6 +32,13 @@ namespace {{BuilderClassNamespace}}
             }
         }
 
+        /// <summary>Resets this builder to a fresh, uninitialized target object.</summary>
+        public {{BuilderClassName}} New()
+        {
+            {{TargetClassName}} = new System.Lazy<{{TargetClassFullName}}>();
+            return this;
+        }
+
 {{BuildMethod}}
 {{WithObjectMethod}}
         public {{BuilderClassName}} WithPostBuildAction(System.Action<{{TargetClassFullName}}> action)

@@ -74,6 +74,13 @@ namespace BuilderGenerator.Tests.Unit.Examples
             }
         }
 
+        /// <summary>Resets this builder to a fresh, uninitialized target object.</summary>
+        public PersonBuilderWithObsolete New()
+        {
+            Person = new System.Lazy<BuilderGenerator.Tests.Unit.Examples.Person>();
+            return this;
+        }
+
         public override BuilderGenerator.Tests.Unit.Examples.Person Build()
         {
             if (Person?.IsValueCreated != true)
