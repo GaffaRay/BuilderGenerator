@@ -2,7 +2,7 @@
 
 # Builder Generator - Parameterized Constructor #
 
-This is a fork of the libarby at [MelGrubb/BuilderGenerator](https://github.com/MelGrubb/BuilderGenerator/). I implemented logic to use the BuilderPattern for classes with parameterized constructors. Unfortunately these changes would lead  
+This is a fork of the libarby at [MelGrubb/BuilderGenerator](https://github.com/MelGrubb/BuilderGenerator/). I implemented logic to use the BuilderPattern for classes with parameterized constructors. Unfortunately these changes caused breaking changes, so I decided to fork the code an create a separate nuget-package.  
 
 ## Overview ##
 
@@ -25,6 +25,7 @@ After installation, create a partial class to define your builder in. Decorate i
 ## Version History ##
 - v1.0.0
   - Classes with parameterized constructors can be used by the Builders.
+  - New-Method added to the Builder so Build() can be called multiple times to create multiple instances of the target class.
 
 ## Roadmap ##
 
